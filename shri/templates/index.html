@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RetinaAI | Clinical Eye Screening</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="RetinaAI home">
+        <span class="brand-mark">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="22" cy="25" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="42" cy="25" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="32" cy="41" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <path d="M28 28l8 0M25 32l4 5M39 32l-4 5M22 25l10 16M42 25L32 41" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <strong>RetinaAI</strong>
+          <small>Vision Diagnostics</small>
+        </span>
+      </a>
+
+      <nav class="nav" id="main-nav">
+        <a href="#analysis" class="active" data-tab="analysis">Analysis</a>
+        <a href="#dataset" data-tab="dataset">Dataset</a>
+        <a href="#training" data-tab="training">Training Console</a>
+        <a href="#about" data-tab="about">About</a>
+      </nav>
+
+      <a class="contact-pill" href="#analysis">Start Scan</a>
+    </header>
+
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-backdrop">
+          <div class="hero-orb orb-one"></div>
+          <div class="hero-orb orb-two"></div>
+          <div class="hero-grid"></div>
+        </div>
+
+        <div class="hero-copy">
+          <span class="eyebrow">Reliable retinal screening for modern care teams</span>
+          <h1>PRIMARY EYE CARE</h1>
+          <p>
+            RetinaAI combines diabetic retinopathy grading, image upload screening, and clinical-style reporting
+            in a single calm interface designed for preventive care, triage, and patient education.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-solid" href="#analysis">Explore Retinal Scan</a>
+            <a class="button button-ghost" href="#services">View Services</a>
+          </div>
+          <div class="hero-tags">
+            <span>Retina</span>
+            <span>AI Screening</span>
+            <span>Clinical Insights</span>
+            <span>Risk Grading</span>
+            <span>Follow-up Planning</span>
+          </div>
+        </div>
+
+        <aside class="hero-sidecard">
+          <div class="metric-card">
+            <div class="metric-heading">
+              <strong>50K</strong>
+              <span>screening-ready image checks supported in the workflow design</span>
+            </div>
+            <div class="avatar-row" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+          <div class="doctor-card">
+            <div class="doctor-portrait">
+              <div class="doctor-glow"></div>
+              <div class="doctor-figure">
+                <span class="head"></span>
+                <span class="torso"></span>
+                <span class="coat-left"></span>
+                <span class="coat-right"></span>
+              </div>
+            </div>
+            <div class="doctor-copy">
+              <div class="doctor-count">20+</div>
+              <p>care pathways reflected in the risk and recommendation copy</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="intro-band" id="about">
+        <div class="intro-copy">
+          <h2>Health · Wellness · Vision</h2>
+          <p>
+            RetinaAI is built around a clean screening experience. The interface explains what the model sees,
+            what the confidence means, and what kind of ophthalmology follow-up is appropriate.
+          </p>
+        </div>
+        <div class="seal">
+          <span class="seal-mark">RA</span>
+          <span class="seal-copy">Retinal Wellness Suite</span>
+        </div>
+        <div class="intro-note">
+          <p>
+            The visual language follows the same soft clinical aesthetic across navigation, hero panels, service
+            cards, and the upload analysis surface so the product feels consistent instead of stitched together.
+          </p>
+        </div>
+      </section>
+
+      <section class="services" id="services">
+        <article class="service-card">
+          <div class="service-copy">
+            <h3>Expert Medical Care</h3>
+            <p>
+              Retina grading, upload validation, and structured interpretation are presented in a clinician-friendly
+              layout that keeps the critical findings visible first.
+            </p>
+            <a href="#analysis">Learn More</a>
+          </div>
+          <div class="service-visual visual-chart">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </article>
+
+        <article class="service-card">
+          <div class="service-copy">
+            <h3>Holistic Wellness</h3>
+            <p>
+              Recommendations are tied to practical follow-up guidance so users understand the next step after a
+              mild, moderate, severe, or proliferative classification.
+            </p>
+            <a href="#insights">Learn More</a>
+          </div>
+          <div class="service-visual visual-rings">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </article>
+      </section>
+
+      <!-- ── Analysis Tab ─────────────────────────────────────────────────── -->
+      <div id="analysis-tab" class="tab-content active">
+        <section class="analysis-layout" id="analysis">
+          <div class="analysis-copy">
+            <span class="section-kicker">AI-assisted analysis</span>
+            <h2>Upload a fundus image and receive a full diabetic retinopathy summary</h2>
+            <p>
+              The analyzer keeps the same clinical style as the landing page, but it is the working part of the app:
+              select an image, submit it, and the model response appears as a structured result card instead of raw JSON.
+            </p>
+
+            <div class="feature-list">
+              <div>
+                <strong>Five-grade detection</strong>
+                <span>No DR to proliferative DR, with confidence and risk level.</span>
+              </div>
+              <div>
+                <strong>Instant feedback</strong>
+                <span>Uploads are validated and rendered with preview before analysis.</span>
+              </div>
+              <div>
+                <strong>Care recommendation</strong>
+                <span>Each grade includes follow-up guidance for the next action.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="analysis-panel">
+            <form class="upload-card" id="predict-form">
+              <div class="upload-topline">
+                <span class="status-dot"></span>
+                <span>RetinaAI Screening Console</span>
+              </div>
+
+              <label class="dropzone" for="file">
+                <input id="file" name="file" type="file" accept=".png,.jpg,.jpeg,.bmp,.tiff" required>
+                <span class="dropzone-copy">
+                  <strong>Select retinal image</strong>
+                  <small>PNG, JPG, BMP, or TIFF up to 16 MB</small>
+                </span>
+                <span class="dropzone-action">Browse File</span>
+              </label>
+
+              <div class="preview-shell">
+                <img id="preview-image" alt="Selected retinal scan preview" hidden>
+                <div id="preview-placeholder" class="preview-placeholder">
+                  Image preview will appear here before analysis.
+                </div>
+              </div>
+
+              <button class="button button-solid button-wide" type="submit">Run Clinical Analysis</button>
+            </form>
+
+            <section class="result-card" aria-live="polite">
+              <div class="result-header">
+                <div>
+                  <span class="section-kicker">Live result</span>
+                  <h3 id="result-title">Awaiting image</h3>
+                </div>
+                <span id="result-badge" class="result-badge">Idle</span>
+              </div>
+
+              <p id="result-summary" class="result-summary">
+                Upload a retinal fundus image to generate a grade, confidence score, and follow-up recommendation.
+              </p>
+
+              <div class="result-grid">
+                <div class="result-block">
+                  <span>Confidence</span>
+                  <strong id="result-confidence">--</strong>
+                </div>
+                <div class="result-block">
+                  <span>Risk Level</span>
+                  <strong id="result-risk">--</strong>
+                </div>
+                <div class="result-block">
+                  <span>Mode</span>
+                  <strong id="result-mode">--</strong>
+                </div>
+              </div>
+
+              <div class="probability-panel">
+                <div class="probability-header">
+                  <span>Class probabilities</span>
+                  <small id="result-note">No analysis run yet.</small>
+                </div>
+                <div id="probability-list" class="probability-list"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </div>
+
+      <!-- ── Dataset Tab ─────────────────────────────────────────────────── -->
+      <div id="dataset-tab" class="tab-content">
+        <section class="dataset-panel" id="dataset">
+          <div class="dataset-header">
+            <div>
+              <span class="section-kicker">Data Repository</span>
+              <h2>Managed Retinal Datasets</h2>
+            </div>
+            <div class="hero-actions">
+              <button class="button button-ghost split-toggle active" data-split="train">Train Images</button>
+              <button class="button button-ghost split-toggle" data-split="test">Test Images</button>
+            </div>
+          </div>
+          
+          <div id="dataset-grid" class="dataset-grid">
+            <!-- Items injected by JS -->
+          </div>
+
+          <div class="pagination">
+            <button class="button button-ghost" id="prev-page">Previous</button>
+            <span id="page-info">Page 1</span>
+            <button class="button button-ghost" id="next-page">Next</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ── Training Tab ────────────────────────────────────────────────── -->
+      <div id="training-tab" class="tab-content">
+        <section class="training-panel" id="training">
+          <div class="training-controls">
+            <div>
+              <span class="section-kicker">Model Management</span>
+              <h2>Training Command Center</h2>
+              <p>Trigger background training and monitor progress in real-time.</p>
+            </div>
+            
+            <div class="training-stats">
+              <div class="stat-box">
+                <span>Status</span>
+                <strong id="train-status-text">Idle</strong>
+              </div>
+              <div class="stat-box">
+                <span>Progress</span>
+                <strong id="train-progress-text">0%</strong>
+              </div>
+            </div>
+
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div id="train-progress-fill" class="progress-fill"></div>
+              </div>
+            </div>
+
+            <button class="button button-solid" id="start-train-btn">Initialize Training</button>
+            <p class="result-note">Training uses local TPU/GPU or CPU resources via TensorFlow.</p>
+          </div>
+
+          <div id="terminal" class="terminal-view">Awaiting command pipeline...</div>
+        </section>
+      </div>
+
+      <!-- ── About Tab ───────────────────────────────────────────────────── -->
+      <div id="about-tab" class="tab-content">
+        <section class="intro-band" id="about">
+          <div class="intro-copy">
+            <h2>Health · Wellness · Vision</h2>
+            <p>
+              RetinaAI is built around a clean screening experience. The interface explains what the model sees,
+              what the confidence means, and what kind of ophthalmology follow-up is appropriate.
+            </p>
+          </div>
+          <div class="seal">
+            <span class="seal-mark">RA</span>
+            <span class="seal-copy">Retinal Wellness Suite</span>
+          </div>
+          <div class="intro-note">
+            <p>
+              The visual language follows the same soft clinical aesthetic across navigation, hero panels, service
+              cards, and the upload analysis surface so the product feels consistent instead of stitched together.
+            </p>
+          </div>
+        </section>
+
+        <section class="insights" id="insights">
+          <article class="insight-card">
+            <span class="insight-number">01</span>
+            <h3>Clinical-first hierarchy</h3>
+            <p>The primary diagnosis, confidence, and follow-up guidance appear ahead of supporting detail.</p>
+          </article>
+          <article class="insight-card">
+            <span class="insight-number">02</span>
+            <h3>Reusable visual system</h3>
+            <p>Shared colors, card shapes, spacing, and accent gradients make the whole product feel like one system.</p>
+          </article>
+          <article class="insight-card">
+            <span class="insight-number">03</span>
+            <h3>Ready for more pages</h3>
+            <p>The navigation and section styling can be reused directly if you add treatment, blog, or dashboard routes next.</p>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
