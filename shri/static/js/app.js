@@ -11,9 +11,22 @@ const resultRisk = document.getElementById("result-risk");
 const resultMode = document.getElementById("result-mode");
 const resultNote = document.getElementById("result-note");
 const probabilityList = document.getElementById("probability-list");
+const config = window.RETINA_CONFIG || {};
+const API_BASE = String(config.apiBase || "").replace(/\/$/, "");
+const FRONTEND_ONLY = Boolean(config.frontendOnly);
 
 const DR_CLASSES = ["No DR", "Mild DR", "Moderate DR", "Severe DR", "Proliferative DR"];
 const DR_COLORS = ["#22c55e", "#84cc16", "#f59e0b", "#f97316", "#ef4444"];
+
+function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
+function backendUnavailableMessage() {
+  return API_BASE
+    ? "The backend is unavailable right now. Check the deployed API URL and try again."
+    : "This Vercel deployment is frontend-only right now. Add your backend URL in retina-config.js to enable live analysis.";
+}
 
 function setIdleState() {
   resultTitle.textContent = "Awaiting image";
@@ -123,7 +136,11 @@ form.addEventListener("submit", async (event) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("/api/predict", {
+    if (FRONTEND_ONLY && !API_BASE) {
+      throw new Error(backendUnavailableMessage());
+    }
+
+    const response = await fetch(apiUrl("/api/predict"), {
       method: "POST",
       body: formData
     });
@@ -197,9 +214,14 @@ splitToggles.forEach(btn => {
 });
 
 async function loadDataset() {
+  if (FRONTEND_ONLY && !API_BASE) {
+    datasetGrid.innerHTML = `<div class='error'>${backendUnavailableMessage()}</div>`;
+    return;
+  }
+
   datasetGrid.innerHTML = "<div class='loading'>Loading dataset images...</div>";
   try {
-    const response = await fetch(`/api/dataset?split=${currentSplit}&page=${currentPage}&limit=20`);
+    const response = await fetch(apiUrl(`/api/dataset?split=${currentSplit}&page=${currentPage}&limit=20`));
     const data = await response.json();
     
     if (data.success) {
@@ -245,11 +267,17 @@ const trainProgressFill = document.getElementById("train-progress-fill");
 let eventSource = null;
 
 async function startTraining() {
+  if (FRONTEND_ONLY && !API_BASE) {
+    terminal.textContent = backendUnavailableMessage();
+    startTrainBtn.disabled = false;
+    return;
+  }
+
   startTrainBtn.disabled = true;
   terminal.textContent = "Connecting to pipeline...";
   
   try {
-    const response = await fetch("/api/train", { method: "POST" });
+    const response = await fetch(apiUrl("/api/train"), { method: "POST" });
     const data = await response.json();
     
     if (data.success) {
@@ -268,7 +296,7 @@ function connectLogs() {
   if (eventSource) eventSource.close();
   
   terminal.textContent = "";
-  eventSource = new EventSource("/api/train-logs");
+  eventSource = new EventSource(apiUrl("/api/train-logs"));
   
   eventSource.onmessage = (event) => {
     const line = event.data;
@@ -303,8 +331,15 @@ function connectLogs() {
 }
 
 async function pollTrainingStatus() {
+  if (FRONTEND_ONLY && !API_BASE) {
+    trainStatusText.textContent = "Backend required";
+    startTrainBtn.disabled = true;
+    terminal.textContent = backendUnavailableMessage();
+    return;
+  }
+
   try {
-    const response = await fetch("/api/train-status");
+    const response = await fetch(apiUrl("/api/train-status"));
     const data = await response.json();
     
     trainStatusText.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
@@ -328,3 +363,10 @@ startTrainBtn.addEventListener("click", startTraining);
 
 // Initial state
 setIdleState();
+if (FRONTEND_ONLY && !API_BASE) {
+  resultMode.textContent = "Frontend only";
+  resultNote.textContent = backendUnavailableMessage();
+  trainStatusText.textContent = "Backend required";
+  startTrainBtn.disabled = true;
+  terminal.textContent = backendUnavailableMessage();
+}
