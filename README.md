@@ -9,6 +9,14 @@ A complete Flask + TensorFlow web application for **diabetic retinopathy screeni
 
 ---
 
+## 👀 Preview
+
+Homepage preview of the current UI:
+
+![RetinaAI Preview](preview.png)
+
+---
+
 ## 📊 Training Performance
 
 Sample training results from the demo model:
