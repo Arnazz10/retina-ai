@@ -17,8 +17,8 @@ Sample training results from the demo model:
 
 **Key Metrics:**
 - Final Validation Accuracy: ~83%
-- Training converges with balanced train/val performance
-- Lightweight architecture suitable for deployment
+- Training converges with balanced train/val performance in it and also based on it.
+- Lightweight architecture suitable for deployment.
 
 ---
 
