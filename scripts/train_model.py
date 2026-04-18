@@ -22,7 +22,9 @@ from sklearn.utils.class_weight import compute_class_weight
 from tensorflow.keras import callbacks, layers, models, regularizers
 
 BASE_DIR = Path(__file__).resolve().parent
-MODELS_DIR = BASE_DIR / "models"
+PROJECT_ROOT = BASE_DIR.parent
+DATA_DIR = PROJECT_ROOT / "data"
+MODELS_DIR = PROJECT_ROOT / "models"
 MODEL_PATH = MODELS_DIR / "dr_model.h5"
 
 DEFAULT_IMG_SIZE = 160
@@ -435,7 +437,7 @@ def train(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="DR Detection trainer")
-    parser.add_argument("--data_dir", default=str(BASE_DIR), help="Dataset directory")
+    parser.add_argument("--data_dir", default=str(DATA_DIR), help="Dataset directory")
     parser.add_argument("--verify_only", action="store_true", help="Validate files and labels only")
     parser.add_argument("--epochs", type=int, default=DEFAULT_EPOCHS, help="Number of epochs")
     parser.add_argument("--batch_size", type=int, default=DEFAULT_BATCH_SIZE, help="Batch size")

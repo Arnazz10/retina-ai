@@ -14,17 +14,11 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(BASE_DIR)
-TEMPLATE_DIR = (
-    os.path.join(PROJECT_ROOT, 'templates')
-    if os.path.isdir(os.path.join(PROJECT_ROOT, 'templates'))
-    else os.path.join(BASE_DIR, 'templates')
-)
-STATIC_DIR = (
-    os.path.join(PROJECT_ROOT, 'static')
-    if os.path.isdir(os.path.join(PROJECT_ROOT, 'static'))
-    else os.path.join(BASE_DIR, 'static')
-)
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+SCRIPTS_DIR = os.path.join(BASE_DIR, 'scripts')
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
 UPLOAD_DIR = (
     os.path.join(tempfile.gettempdir(), 'retina_uploads')
     if os.environ.get('VERCEL')
@@ -38,12 +32,13 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'bmp', 'tiff'}
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Dataset paths
-TRAIN_IMAGES_DIR = os.path.join(BASE_DIR, 'train_images')
-TEST_IMAGES_DIR  = os.path.join(BASE_DIR, 'test_images')
-TRAIN_CSV = os.path.join(BASE_DIR, 'train.csv')
-TEST_CSV  = os.path.join(BASE_DIR, 'test.csv')
+TRAIN_IMAGES_DIR = os.path.join(DATA_DIR, 'train_images')
+TEST_IMAGES_DIR  = os.path.join(DATA_DIR, 'test_images')
+TRAIN_CSV = os.path.join(DATA_DIR, 'train.csv')
+TEST_CSV  = os.path.join(DATA_DIR, 'test.csv')
 
-LOG_FILE = os.path.join(BASE_DIR, 'training.log')
+os.makedirs(LOGS_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOGS_DIR, 'training.log')
 
 # ── Config ────────────────────────────────────────────────────────────────────
 MODEL_PATH = os.path.join(BASE_DIR, 'models', 'dr_model.h5')
@@ -174,7 +169,7 @@ def load_model():
             print(f"   Input size: {model_input_size}×{model_input_size}")
         else:
             print("⚙️  No saved model found — building SmallCNN structure (untrained)")
-            print("   Run: python train_model.py")
+            print("   Run: python scripts/train_model.py")
             model = build_small_cnn()
             model_mtime = None
             print(f"   Params: {model.count_params():,}")
@@ -276,8 +271,8 @@ def run_training():
         training_process = subprocess.Popen(
             [
                 sys.executable,
-                os.path.join(BASE_DIR, 'train_model.py'),
-                '--data_dir', BASE_DIR,
+                os.path.join(SCRIPTS_DIR, 'train_model.py'),
+                '--data_dir', DATA_DIR,
                 '--variant', 'small',
                 '--resume',
                 '--img_size', str(IMG_SIZE),

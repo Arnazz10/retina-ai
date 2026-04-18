@@ -7,14 +7,15 @@ __pycache__/
 .codex
 app.log
 *.log
+logs/
 
 models/
-train_images/
-test_images/
+data/train_images/
+data/test_images/
 static/uploads/
 
-submission.csv
-submission_labeled.csv
+data/submission.csv
+data/submission_labeled.csv
 
 .vercel/
 vercel-frontend/.vercel/
