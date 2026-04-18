@@ -9,13 +9,13 @@ app.log
 *.log
 
 models/
-shri/models/
-shri/train_images/
-shri/test_images/
-shri/static/uploads/
+train_images/
+test_images/
+static/uploads/
 
-shri/submission.csv
-shri/submission_labeled.csv
+submission.csv
+submission_labeled.csv
 
 .vercel/
 vercel-frontend/.vercel/
+.vercel

@@ -268,6 +268,21 @@ def build_model(input_shape: tuple[int, int, int], variant: str) -> tf.keras.Mod
     return build_small_model(input_shape)
 
 
+def compile_model(model: tf.keras.Model, variant: str) -> None:
+    if variant == "residual":
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
+            loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"],
+        )
+    else:
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=3e-4),
+            loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"],
+        )
+
+
 def get_class_weights(labels: np.ndarray) -> dict[int, float]:
     weights = compute_class_weight("balanced", classes=np.arange(NUM_CLASSES), y=labels)
     return {int(index): float(weight) for index, weight in enumerate(weights)}
@@ -337,6 +352,7 @@ def train(
     batch_size: int,
     img_size: int,
     variant: str,
+    resume: bool,
 ) -> tuple[tf.keras.Model, tf.keras.callbacks.History]:
     tf.keras.utils.set_random_seed(SEED)
     data_dir_path = Path(data_dir)
@@ -367,7 +383,16 @@ def train(
     print("Class weights:", {DR_LABELS[key]: round(value, 2) for key, value in class_weights.items()})
 
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    model = build_model((img_size, img_size, 3), variant)
+    if resume and MODEL_PATH.exists():
+        print(f"Resuming from checkpoint: {MODEL_PATH}")
+        try:
+            model = tf.keras.models.load_model(str(MODEL_PATH))
+            compile_model(model, variant)
+        except Exception as err:
+            print(f"Could not load checkpoint, rebuilding model: {err}")
+            model = build_model((img_size, img_size, 3), variant)
+    else:
+        model = build_model((img_size, img_size, 3), variant)
     model.summary()
 
     cb_list = [
@@ -421,6 +446,11 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_VARIANT,
         help="Model size profile",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from models/dr_model.h5 if available",
+    )
     return parser.parse_args()
 
 
@@ -435,4 +465,5 @@ if __name__ == "__main__":
             batch_size=args.batch_size,
             img_size=args.img_size,
             variant=args.variant,
+            resume=args.resume,
         )

@@ -1,0 +1,17 @@
+.git
+.codex
+.venv
+__pycache__
+*.pyc
+*.log
+app.log
+.vercel
+
+index.html
+retina-config.js
+
+train_images
+test_images
+static/uploads
+submission.csv
+submission_labeled.csv

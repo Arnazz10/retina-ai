@@ -5,16 +5,31 @@ No pretrained weights. No external model downloads.
 """
 
 import os
+import tempfile
 import uuid
+import csv
 import numpy as np
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 from PIL import Image
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
-UPLOAD_DIR = os.path.join(STATIC_DIR, 'uploads')
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+TEMPLATE_DIR = (
+    os.path.join(PROJECT_ROOT, 'templates')
+    if os.path.isdir(os.path.join(PROJECT_ROOT, 'templates'))
+    else os.path.join(BASE_DIR, 'templates')
+)
+STATIC_DIR = (
+    os.path.join(PROJECT_ROOT, 'static')
+    if os.path.isdir(os.path.join(PROJECT_ROOT, 'static'))
+    else os.path.join(BASE_DIR, 'static')
+)
+UPLOAD_DIR = (
+    os.path.join(tempfile.gettempdir(), 'retina_uploads')
+    if os.environ.get('VERCEL')
+    else os.path.join(STATIC_DIR, 'uploads')
+)
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -32,9 +47,10 @@ LOG_FILE = os.path.join(BASE_DIR, 'training.log')
 
 # ── Config ────────────────────────────────────────────────────────────────────
 MODEL_PATH = os.path.join(BASE_DIR, 'models', 'dr_model.h5')
+HISTORY_PATH = os.path.join(BASE_DIR, 'models', 'history.csv')
 IMG_SIZE = 160
-BATCH_SIZE = 8
-EPOCHS = 20
+BATCH_SIZE = 4
+EPOCHS = 10
 NUM_CLASSES = 5
 
 DR_CLASSES = ["No DR", "Mild DR", "Moderate DR", "Severe DR", "Proliferative DR"]
@@ -263,6 +279,7 @@ def run_training():
                 os.path.join(BASE_DIR, 'train_model.py'),
                 '--data_dir', BASE_DIR,
                 '--variant', 'small',
+                '--resume',
                 '--img_size', str(IMG_SIZE),
                 '--batch_size', str(BATCH_SIZE),
                 '--epochs', str(EPOCHS),
@@ -315,6 +332,57 @@ def model_info():
         'total_params':  f'{params:,}',
         'classes':       DR_CLASSES,
         'framework':     'TensorFlow / Keras',
+    })
+
+
+@app.route('/api/training-summary')
+def training_summary():
+    history_rows = []
+    if os.path.exists(HISTORY_PATH):
+        with open(HISTORY_PATH, 'r', newline='') as csv_file:
+            reader = csv.DictReader(csv_file)
+            history_rows = list(reader)
+
+    epochs_completed = len(history_rows)
+    best_val_accuracy = None
+    best_epoch = None
+    last_train_accuracy = None
+    last_val_accuracy = None
+
+    if history_rows:
+        val_scores = []
+        for index, row in enumerate(history_rows):
+            try:
+                val_scores.append((float(row.get('val_accuracy', 0.0)), index + 1))
+            except (TypeError, ValueError):
+                continue
+
+        if val_scores:
+            best_val_accuracy, best_epoch = max(val_scores, key=lambda item: item[0])
+
+        try:
+            last_train_accuracy = float(history_rows[-1].get('accuracy', 0.0))
+            last_val_accuracy = float(history_rows[-1].get('val_accuracy', 0.0))
+        except (TypeError, ValueError):
+            last_train_accuracy = None
+            last_val_accuracy = None
+
+    progress_pct = 0
+    if EPOCHS > 0 and epochs_completed > 0:
+        progress_pct = min(100, round((epochs_completed / EPOCHS) * 100))
+
+    return jsonify({
+        'success': True,
+        'configured_epochs': EPOCHS,
+        'configured_batch_size': BATCH_SIZE,
+        'configured_img_size': IMG_SIZE,
+        'epochs_completed': epochs_completed,
+        'progress_percent': progress_pct,
+        'model_file_exists': os.path.exists(MODEL_PATH),
+        'best_val_accuracy': round(best_val_accuracy * 100, 2) if best_val_accuracy is not None else None,
+        'best_epoch': best_epoch,
+        'last_train_accuracy': round(last_train_accuracy * 100, 2) if last_train_accuracy is not None else None,
+        'last_val_accuracy': round(last_val_accuracy * 100, 2) if last_val_accuracy is not None else None,
     })
 
 
