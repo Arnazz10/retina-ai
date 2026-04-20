@@ -66,7 +66,7 @@ DR_COLORS = {
     "Moderate DR": "#f59e0b", "Severe DR": "#f97316", "Proliferative DR": "#ef4444",
 }
 
-model = None  # populated by load_model()
+ 
 model_input_size = IMG_SIZE
 model_mtime = None
 
@@ -154,7 +154,7 @@ def build_residual_cnn():
 
 
 # ── Model loading ─────────────────────────────────────────────────────────────
-def load_model():
+ 
     global model, model_input_size, model_mtime
     try:
         import tensorflow as tf
@@ -185,7 +185,7 @@ def ensure_latest_model():
         return
     current_mtime = os.path.getmtime(MODEL_PATH)
     if model is None or model_mtime is None or current_mtime > model_mtime:
-        load_model()
+ 
 
 
 # ── Preprocessing ─────────────────────────────────────────────────────────────
@@ -287,7 +287,7 @@ def run_training():
         training_process.wait()
         f.write(f"\n--- Training finished at {time.ctime()} ---\n")
     if training_process.returncode == 0:
-        load_model()
+ 
 
 
 
@@ -507,8 +507,10 @@ def train_logs():
 
 
 # ── Entry ─────────────────────────────────────────────────────────────────────
+
+load_model()
+
 if __name__ == '__main__':
-    load_model()
     app.run(
         debug=os.environ.get('FLASK_DEBUG', '0') == '1',
         host=os.environ.get('FLASK_HOST', '127.0.0.1'),

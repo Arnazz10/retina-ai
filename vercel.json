@@ -1,15 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "functions": {
-    "api/index.py": {
-      "includeFiles": "{templates/**,static/**,models/**}"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/index"
+      "destination": "/app.py"
     }
   ]
 }
