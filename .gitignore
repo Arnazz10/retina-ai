@@ -9,13 +9,13 @@ app.log
 *.log
 logs/
 
-models/
+# models/
 data/train_images/
 data/test_images/
 static/uploads/
 
-data/submission.csv
-data/submission_labeled.csv
+# data/submission.csv
+# data/submission_labeled.csv
 
 .vercel/
 vercel-frontend/.vercel/
