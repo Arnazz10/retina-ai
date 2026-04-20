@@ -19,7 +19,7 @@ import pandas as pd
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.utils.class_weight import compute_class_weight
-from tensorflow.keras import callbacks, layers, models, regularizers
+from tensorflow.keras import callbacks, layers, models, regularizers, mixed_precision
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent
@@ -228,7 +228,8 @@ def build_small_model(input_shape: tuple[int, int, int]) -> tf.keras.Model:
     x = layers.GlobalAveragePooling2D()(x)
     x = layers.Dense(128, activation="relu")(x)
     x = layers.Dropout(0.35)(x)
-    out = layers.Dense(NUM_CLASSES, activation="softmax")(x)
+    # Mixed precision requires float32 for the final output layer
+    out = layers.Dense(NUM_CLASSES, activation="softmax", dtype="float32")(x)
 
     model = models.Model(inp, out, name="DR_SmallCNN")
     model.compile(
@@ -253,7 +254,8 @@ def build_residual_model(input_shape: tuple[int, int, int]) -> tf.keras.Model:
     x = layers.GlobalAveragePooling2D()(x)
     x = layers.Dense(256, activation="relu")(x)
     x = layers.Dropout(0.45)(x)
-    out = layers.Dense(NUM_CLASSES, activation="softmax")(x)
+    # Mixed precision requires float32 for the final output layer
+    out = layers.Dense(NUM_CLASSES, activation="softmax", dtype="float32")(x)
 
     model = models.Model(inp, out, name="DR_ResidualNet")
     model.compile(
@@ -356,6 +358,14 @@ def train(
     variant: str,
     resume: bool,
 ) -> tuple[tf.keras.Model, tf.keras.callbacks.History]:
+    # Enable mixed precision training
+    try:
+        policy = mixed_precision.Policy('mixed_float16')
+        mixed_precision.set_global_policy(policy)
+        print(f"Mixed precision policy set to: {policy.name}")
+    except Exception as e:
+        print(f"Mixed precision not available: {e}")
+
     tf.keras.utils.set_random_seed(SEED)
     data_dir_path = Path(data_dir)
 
@@ -431,6 +441,21 @@ def train(
 
     plot_history(history)
     print(f"\nTraining complete. Best model saved to {MODEL_PATH}")
+
+    # --- Quantization and TFLite Export ---
+    print("\nStarting model quantization and TFLite export...")
+    try:
+        converter = tf.lite.TFLiteConverter.from_keras_model(model)
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        # For full integer quantization, a representative dataset is needed.
+        # Here we do dynamic range quantization as a starting point.
+        tflite_quant_model = converter.convert()
+        tflite_path = MODELS_DIR / "dr_model_quantized.tflite"
+        tflite_path.write_bytes(tflite_quant_model)
+        print(f"✅ Quantized model saved to {tflite_path}")
+    except Exception as e:
+        print(f"⚠️ Quantization failed: {e}")
+
     predict_test(model, test_df, data_dir_path, img_size)
     return model, history
 

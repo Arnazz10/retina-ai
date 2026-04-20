@@ -188,9 +188,30 @@ navLinks.forEach(link => {
     });
 
     if (tabId === "dataset") loadDataset();
-    if (tabId === "training") pollTrainingStatus();
+    if (tabId === "training") {
+      pollTrainingStatus();
+      loadTrainingSummary();
+    }
   });
 });
+
+async function loadTrainingSummary() {
+  const report = document.getElementById("performance-report");
+  const graph = document.getElementById("results-graph");
+  if (!report) return;
+
+  try {
+    const response = await fetch(apiUrl("/api/training-summary"));
+    const data = await response.json();
+    if (data.success && data.results_graph_url) {
+      graph.src = data.results_graph_url + "?v=" + Date.now();
+      report.hidden = false;
+      updateTrainProgress(data.progress_percent, data.epochs_completed > 0 ? `Resume at Epoch ${data.epochs_completed}` : "Idle");
+    }
+  } catch (e) {
+    console.error("Failed to load training summary", e);
+  }
+}
 
 
 // ── Dataset Logic ──
@@ -234,11 +255,12 @@ async function loadDataset() {
           <div class="dataset-info">
             <strong>ID: ${item.id_code}</strong>
             ${item.diagnosis !== null ? 
-              `<span class="label-pill" style="background: ${DR_COLORS[item.diagnosis]}22; color: ${DR_COLORS[item.diagnosis]}">
-                Grade ${item.diagnosis}: ${DR_CLASSES[item.diagnosis]}
+              `<span class="diag-label diag-${item.diagnosis}">
+                ${item.label || DR_CLASSES[item.diagnosis]}
                </span>` : 
-              `<span class="label-pill" style="background: #eee; color: #666">Unlabeled</span>`
+              `<span class="diag-label" style="background: #eee; color: #666">Unlabeled</span>`
             }
+            ${item.confidence ? `<small style="color: var(--muted)">Confidence: ${item.confidence}%</small>` : ''}
           </div>
         `;
         datasetGrid.appendChild(card);

@@ -378,6 +378,7 @@ def training_summary():
         'best_epoch': best_epoch,
         'last_train_accuracy': round(last_train_accuracy * 100, 2) if last_train_accuracy is not None else None,
         'last_val_accuracy': round(last_val_accuracy * 100, 2) if last_val_accuracy is not None else None,
+        'results_graph_url': '/static/training_results.png' if os.path.exists(os.path.join(STATIC_DIR, 'training_results.png')) else None
     })
 
 
@@ -399,12 +400,17 @@ def get_dataset():
     split = request.args.get('split', 'train') # 'train' or 'test'
     
     csv_path = TRAIN_CSV if split == 'train' else TEST_CSV
+    subset_path = os.path.join(DATA_DIR, f'{split}_labeled_subset.csv')
+    
+    # Use labeled subset if it exists and we are on the first page
+    current_csv = subset_path if os.path.exists(subset_path) and page == 1 else csv_path
+    
     img_dir = TRAIN_IMAGES_DIR if split == 'train' else TEST_IMAGES_DIR
     
-    if not os.path.exists(csv_path):
+    if not os.path.exists(current_csv):
         return jsonify({'success': False, 'error': f'{split}.csv not found'}), 404
         
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(current_csv)
     total = len(df)
     start = (page - 1) * limit
     end = start + limit
@@ -423,7 +429,9 @@ def get_dataset():
         
         results.append({
             'id_code': id_code,
-            'diagnosis': int(row['diagnosis']) if 'diagnosis' in df.columns else None,
+            'diagnosis': int(row['diagnosis']) if 'diagnosis' in df.columns else (int(row['predicted_diagnosis']) if 'predicted_diagnosis' in df.columns else None),
+            'label': row['predicted_label'] if 'predicted_label' in df.columns else (DR_CLASSES[int(row['diagnosis'])] if 'diagnosis' in df.columns else None),
+            'confidence': row['confidence'] if 'confidence' in df.columns else None,
             'image_url': f'/api/images/{split}/{img_name}' if img_name else None
         })
         
