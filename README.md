@@ -5,7 +5,7 @@
 [![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com/)
 [![Vercel](https://img.shields.io/badge/Deployment-Vercel-black.svg)](https://vercel.com/)
 
-A complete Flask + TensorFlow web application for **diabetic retinopathy screening** from retinal fundus photographs using a custom lightweight CNN built entirely from scratch — no pretrained weights, no external model downloads.
+A complete Flask + TensorFlow web application for **diabetic retinopathy screening** from retinal fundus photographs using a custom lightweight CNN built entirely from scratch — no pretrained weights.
 
 ---
 
