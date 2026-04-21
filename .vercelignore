@@ -12,10 +12,16 @@ __pycache__
 .codex
 scratch/
 
+# Backend Code
+app.py
+requirements.txt
+scripts/
+api/
+logs/
+
 # Data and Models
 data/
-models/*.h5
-!models/dr_model.h5
+models/
 
 # Static assets cleanup
 static/uploads/
