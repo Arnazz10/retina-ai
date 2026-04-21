@@ -11,35 +11,33 @@ A complete Flask + TensorFlow web application for **diabetic retinopathy screeni
 
 ## 👀 Preview
 
-Premium clinical interface designed for modern care teams:
+Homepage preview of the current UI:
 
-![RetinaAI Preview](static/preview.png)
+![RetinaAI Preview](preview.png)
 
 ---
 
 ## 📊 Training Performance
 
-The model achieves high-performance diagnostic accuracy using advanced optimization:
+Sample training results from the demo model:
 
-![Training Results](static/training_results.png)
+![Training Results](training_results.png)
 
 **Key Metrics:**
-- **Peak Validation Accuracy: >94%**
-- **Mixed Precision**: Enabled (`mixed_float16`) for 3x faster training
-- **QAT (Quantization Aware Training)**: Enabled for efficient edge deployment
-- Lightweight architecture (~2.1M parameters) optimized for low-latency inference.
+- Final Validation Accuracy: ~83%
+- Training converges with balanced train/val performance in it and also based on it.
+- Lightweight architecture suitable for deployment.
 
 ---
 
 ## ✨ Features
 
 - **AI-Powered Classification**: 5-grade diabetic retinopathy detection (No DR → Proliferative DR)
-- **Clean Web UI**: Premium clinical interface with real-time predictions and follow-up guidance
-- **Optimization**: Built-in **Mixed Precision** and **Quantization Aware Training (QAT)**
+- **Clean Web UI**: Professional medical interface with real-time predictions
 - **Custom CNN**: Built from scratch, ~2.1M parameters, no external model downloads
-- **Demo Mode**: Works immediately with pre-labeled subsets and synthetic logs
-- **Production Ready**: Fully optimized for **Vercel** serverless architecture (<500MB bundle)
-- **Training Pipeline**: Full end-to-end with data loading, augmentation, and CSV logging
+- **Demo Mode**: Works immediately without training data
+- **Production Ready**: Deployable to Vercel serverless architecture
+- **Training Pipeline**: Full end-to-end with data loading, augmentation, and validation splits
 
 ---
 
@@ -218,10 +216,12 @@ flask>=2.3.0
 werkzeug>=2.3.0
 pillow>=10.0.0
 numpy>=1.24.0
-tensorflow-cpu>=2.13.0
+pandas>=2.0.0
+tensorflow>=2.13.0
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+opencv-python>=4.8.0
 ```
-
-*(Note: Heavy dependencies like pandas/opencv are only required for the offline training script to keep the production bundle small.)*
 
 ---
 
