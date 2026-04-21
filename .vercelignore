@@ -1,17 +1,22 @@
 .git
-.codex
 .venv
+venv
+env
+bin
+obj
 __pycache__
 *.pyc
 *.log
-app.log
+*.tmp
 .vercel
+.codex
+scratch/
 
-index.html
-retina-config.js
+# Data and Models
+data/
+models/*.h5
+!models/dr_model.h5
 
-data/train_images
-data/test_images
-static/uploads
-data/submission.csv
-data/submission_labeled.csv
+# Static assets cleanup
+static/uploads/
+static/training_results.png

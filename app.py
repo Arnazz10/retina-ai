@@ -43,8 +43,8 @@ LOG_FILE = os.path.join(LOGS_DIR, 'training.log')
 # ── Config ────────────────────────────────────────────────────────────────────
 MODEL_PATH = os.path.join(BASE_DIR, 'models', 'dr_model.h5')
 HISTORY_PATH = os.path.join(BASE_DIR, 'models', 'history.csv')
-IMG_SIZE = 160
-BATCH_SIZE = 4
+IMG_SIZE = 128
+BATCH_SIZE = 16
 EPOCHS = 10
 NUM_CLASSES = 5
 
@@ -153,8 +153,7 @@ def build_residual_cnn():
     return m
 
 
-# ── Model loading ─────────────────────────────────────────────────────────────
- 
+def load_model():
     global model, model_input_size, model_mtime
     try:
         import tensorflow as tf
@@ -173,8 +172,8 @@ def build_residual_cnn():
             model = build_small_cnn()
             model_mtime = None
             print(f"   Params: {model.count_params():,}")
-    except ImportError:
-        print("⚠️  TensorFlow not installed — demo mode active")
+    except Exception as e:
+        print(f"⚠️  Failed to load model: {e}")
         model = None
         model_mtime = None
 
@@ -185,6 +184,7 @@ def ensure_latest_model():
         return
     current_mtime = os.path.getmtime(MODEL_PATH)
     if model is None or model_mtime is None or current_mtime > model_mtime:
+        load_model()
  
 
 
@@ -287,8 +287,7 @@ def run_training():
         training_process.wait()
         f.write(f"\n--- Training finished at {time.ctime()} ---\n")
     if training_process.returncode == 0:
- 
-
+        load_model()
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -394,7 +393,6 @@ def uploaded_file(filename):
 
 @app.route('/api/dataset')
 def get_dataset():
-    import pandas as pd
     page = int(request.args.get('page', 1))
     limit = int(request.args.get('limit', 20))
     split = request.args.get('split', 'train') # 'train' or 'test'
@@ -410,31 +408,35 @@ def get_dataset():
     if not os.path.exists(current_csv):
         return jsonify({'success': False, 'error': f'{split}.csv not found'}), 404
         
-    df = pd.read_csv(current_csv)
-    total = len(df)
-    start = (page - 1) * limit
-    end = start + limit
-    
-    subset = df.iloc[start:end].copy()
-    
+    # Read using standard csv module to save memory/bundle size
     results = []
-    for _, row in subset.iterrows():
-        id_code = str(row['id_code'])
-        # Try finding image
-        img_name = None
-        for ext in ['.png', '.jpg', '.jpeg']:
-            if os.path.exists(os.path.join(img_dir, id_code + ext)):
-                img_name = id_code + ext
-                break
+    total = 0
+    with open(current_csv, 'r', newline='') as f:
+        reader = csv.DictReader(f)
+        all_rows = list(reader)
+        total = len(all_rows)
         
-        results.append({
-            'id_code': id_code,
-            'diagnosis': int(row['diagnosis']) if 'diagnosis' in df.columns else (int(row['predicted_diagnosis']) if 'predicted_diagnosis' in df.columns else None),
-            'label': row['predicted_label'] if 'predicted_label' in df.columns else (DR_CLASSES[int(row['diagnosis'])] if 'diagnosis' in df.columns else None),
-            'confidence': row['confidence'] if 'confidence' in df.columns else None,
-            'image_url': f'/api/images/{split}/{img_name}' if img_name else None
-        })
+        start = (page - 1) * limit
+        end = start + limit
+        subset = all_rows[start:end]
         
+        for row in subset:
+            id_code = str(row['id_code'])
+            # Try finding image
+            img_name = None
+            for ext in ['.png', '.jpg', '.jpeg']:
+                if os.path.exists(os.path.join(img_dir, id_code + ext)):
+                    img_name = id_code + ext
+                    break
+            
+            results.append({
+                'id_code': id_code,
+                'diagnosis': int(row['diagnosis']) if 'diagnosis' in row else (int(row['predicted_diagnosis']) if 'predicted_diagnosis' in row else None),
+                'label': row['predicted_label'] if 'predicted_label' in row else (DR_CLASSES[int(row['diagnosis'])] if 'diagnosis' in row else None),
+                'confidence': row['confidence'] if 'confidence' in row else None,
+                'image_url': f'/api/images/{split}/{img_name}' if img_name else None
+            })
+    
     return jsonify({
         'success': True,
         'data': results,

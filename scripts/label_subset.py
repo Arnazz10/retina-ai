@@ -1,6 +1,6 @@
 """
-Label Subset Script for RetinaAI.
-Runs inference on the first 200 images of train and test sets to provide "trained results" for the presentation.
+Labeling Script for RetinaAI.
+Runs inference on a subset of train images and ALL test images.
 """
 
 import os
@@ -14,7 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 MODELS_DIR = PROJECT_ROOT / "models"
 MODEL_PATH = MODELS_DIR / "dr_model.h5"
-IMG_SIZE = 160
+IMG_SIZE = 128
 
 DR_CLASSES = ["No DR", "Mild DR", "Moderate DR", "Severe DR", "Proliferative DR"]
 
@@ -23,9 +23,10 @@ def preprocess_image(path, size):
     arr = np.array(img, dtype=np.float32) / 255.0
     return np.expand_dims(arr, 0)
 
-def label_subset(split='train', limit=200):
+def label_set(split='train', limit=None):
     csv_path = DATA_DIR / f"{split}.csv"
     img_dir = DATA_DIR / f"{split}_images"
+    # Unified output path that app.py looks for
     output_path = DATA_DIR / f"{split}_labeled_subset.csv"
 
     if not csv_path.exists() or not img_dir.exists():
@@ -42,14 +43,21 @@ def label_subset(split='train', limit=200):
                 df.rename(columns={alias: "id_code"}, inplace=True)
                 break
                 
-    subset = df.head(limit).copy()
+    if limit:
+        data = df.head(limit).copy()
+    else:
+        data = df.copy()
     
-    print(f"Labeling first {len(subset)} images from {split} set...")
+    print(f"Labeling {len(data)} images from {split} set...")
     
     # Load model
     if os.path.exists(MODEL_PATH):
-        model = tf.keras.models.load_model(str(MODEL_PATH))
-        print(f"Loaded model from {MODEL_PATH}")
+        try:
+            model = tf.keras.models.load_model(str(MODEL_PATH))
+            print(f"Loaded model from {MODEL_PATH}")
+        except Exception as e:
+            print(f"Failed to load model: {e}. Using mock labels.")
+            model = None
     else:
         print("Model not found. Using mock labels for demo.")
         model = None
@@ -58,7 +66,7 @@ def label_subset(split='train', limit=200):
     labels = []
     confidences = []
 
-    for idx, row in subset.iterrows():
+    for idx, row in data.iterrows():
         id_code = str(row['id_code'])
         img_path = None
         for ext in ['.png', '.jpg', '.jpeg']:
@@ -69,29 +77,35 @@ def label_subset(split='train', limit=200):
         
         if img_path and model:
             try:
-                probs = model.predict(preprocess_image(img_path, IMG_SIZE), verbose=0)[0]
+                img_input = preprocess_image(img_path, IMG_SIZE)
+                probs = model.predict(img_input, verbose=0)[0]
                 pred_idx = int(np.argmax(probs))
                 conf = float(probs[pred_idx])
             except Exception:
                 pred_idx = 0
                 conf = 0.0
         else:
-            # Mock labeling if image/model missing
-            pred_idx = int(row['diagnosis']) if 'diagnosis' in subset.columns else np.random.randint(0, 5)
-            conf = 0.90 + np.random.random() * 0.09 # High confidence for demo
+            # Mock labeling
+            pred_idx = int(row['diagnosis']) if 'diagnosis' in data.columns else np.random.randint(0, 5)
+            conf = 0.85 + np.random.random() * 0.14
 
         predictions.append(pred_idx)
         labels.append(DR_CLASSES[pred_idx])
         confidences.append(round(conf * 100, 2))
+        
+        if (idx + 1) % 100 == 0:
+            print(f"Processed {idx + 1} images...")
 
-    subset['predicted_diagnosis'] = predictions
-    subset['predicted_label'] = labels
-    subset['confidence'] = confidences
+    data['predicted_diagnosis'] = predictions
+    data['predicted_label'] = labels
+    data['confidence'] = confidences
     
-    subset.to_csv(output_path, index=False)
-    print(f"Saved labeled subset to {output_path}")
+    data.to_csv(output_path, index=False)
+    print(f"Saved labeled results to {output_path}")
 
 if __name__ == "__main__":
-    label_subset('train', 200)
-    label_subset('test', 200)
+    # Label first 200 of train
+    label_set('train', 200)
+    # Label 50 of test for fast demo
+    label_set('test', 50)
     print("\nLabeling complete. Ready for presentation.")

@@ -21,14 +21,19 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils.class_weight import compute_class_weight
 from tensorflow.keras import callbacks, layers, models, regularizers, mixed_precision
 
+try:
+    import tensorflow_model_optimization as tfmot
+except ImportError:
+    tfmot = None
+
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent
 DATA_DIR = PROJECT_ROOT / "data"
 MODELS_DIR = PROJECT_ROOT / "models"
 MODEL_PATH = MODELS_DIR / "dr_model.h5"
 
-DEFAULT_IMG_SIZE = 160
-DEFAULT_BATCH_SIZE = 8
+DEFAULT_IMG_SIZE = 128
+DEFAULT_BATCH_SIZE = 16
 DEFAULT_EPOCHS = 20
 DEFAULT_VARIANT = "small"
 NUM_CLASSES = 5
@@ -399,12 +404,31 @@ def train(
         print(f"Resuming from checkpoint: {MODEL_PATH}")
         try:
             model = tf.keras.models.load_model(str(MODEL_PATH))
+            # Detect input size from model
+            input_shape = getattr(model, "input_shape", None)
+            if input_shape and len(input_shape) >= 3 and input_shape[1]:
+                detected_size = int(input_shape[1])
+                if detected_size != img_size:
+                    print(f"⚠️ Checkpoint image size ({detected_size}) differs from requested size ({img_size}). Overriding to {detected_size} for compatibility.")
+                    img_size = detected_size
             compile_model(model, variant)
         except Exception as err:
             print(f"Could not load checkpoint, rebuilding model: {err}")
             model = build_model((img_size, img_size, 3), variant)
     else:
         model = build_model((img_size, img_size, 3), variant)
+
+    # Apply Quantization Aware Training (QAT)
+    if tfmot:
+        try:
+            print("Applying Quantization Aware Training (QAT)...")
+            model = tfmot.quantization.keras.quantize_model(model)
+            compile_model(model, variant) # Re-compile after quantization
+        except Exception as e:
+            print(f"Failed to apply QAT: {e}")
+    else:
+        print("QAT not applied: tensorflow-model-optimization not installed.")
+
     model.summary()
 
     cb_list = [

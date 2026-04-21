@@ -1,6 +1,12 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
   "cleanUrls": true,
+  "functions": {
+    "app.py": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
