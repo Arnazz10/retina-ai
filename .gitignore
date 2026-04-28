@@ -20,3 +20,4 @@ static/uploads/
 .vercel/
 vercel-frontend/.vercel/
 .vercel
+backend_backup/

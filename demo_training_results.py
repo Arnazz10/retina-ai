@@ -5,19 +5,26 @@ High-performance accuracy visualization for RetinaAI.
 
 import matplotlib.pyplot as plt
 import os
+import csv
 
-# Ensure static directory exists
-os.makedirs('static', exist_ok=True)
+# Ensure static/uploads directory exists
+os.makedirs('static/uploads', exist_ok=True)
 
-# High-accuracy training data (>90%)
-epochs = list(range(1, 21))
-# Exponential growth curve to reach >94%
-train_accuracy = [0.45, 0.48, 0.52, 0.55, 0.58, 0.62, 0.65, 0.69, 0.72, 0.75, 0.78, 0.81, 0.84, 0.86, 0.88, 0.90, 0.92, 0.93, 0.94, 0.95]
-val_accuracy   = [0.42, 0.45, 0.49, 0.52, 0.55, 0.59, 0.62, 0.66, 0.69, 0.72, 0.75, 0.78, 0.81, 0.83, 0.85, 0.87, 0.89, 0.91, 0.92, 0.94]
+# Read training data from history.csv
+epochs = []
+train_accuracy = []
+val_accuracy = []
+
+with open('backend_backup/models/history.csv', 'r') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        epochs.append(int(row['epoch']) + 1)
+        train_accuracy.append(float(row['accuracy']))
+        val_accuracy.append(float(row['val_accuracy']))
 
 # Print results
 print("\n" + "=" * 60)
-print("RETINAAI MODEL PERFORMANCE (90%+ ACCURACY ACHIEVED)")
+print("RETINAAI MODEL PERFORMANCE (92.7%+ ACCURACY ACHIEVED)")
 print("=" * 60)
 
 for epoch, t_acc, v_acc in zip(epochs, train_accuracy, val_accuracy):
@@ -42,7 +49,7 @@ plt.plot(epochs, val_accuracy, marker='s', markersize=6, linewidth=3,
 plt.fill_between(epochs, val_accuracy, 0.40, color='#fb7185', alpha=0.1)
 
 # Formatting
-plt.title('Clinical Model Performance: Mixed Precision & QAT (>94%)', fontsize=16, fontweight='bold', pad=20, color='#f8fafc')
+plt.title('Clinical Model Performance: Mixed Precision & QAT (92.7%)', fontsize=16, fontweight='bold', pad=20, color='#f8fafc')
 plt.xlabel('Training Epochs', fontsize=13, fontweight='medium', labelpad=10, color='#cbd5e1')
 plt.ylabel('Diagnostic Accuracy', fontsize=13, fontweight='medium', labelpad=10, color='#cbd5e1')
 plt.xticks(epochs[::2]) # Every 2nd epoch to keep it clean
@@ -52,12 +59,13 @@ plt.grid(True, alpha=0.15, linestyle='--')
 plt.legend(fontsize=12, loc='lower right', frameon=True, facecolor='#1e293b', edgecolor='#334155')
 
 # Annotation for the >90% milestone
-plt.annotate('90% Threshold Surpassed', xy=(16, 0.90), xytext=(10, 0.96),
+plt.annotate('90% Threshold Surpassed', xy=(18, 0.90), xytext=(10, 0.96),
              arrowprops=dict(facecolor='#22c55e', shrink=0.05, width=2, headwidth=8),
              fontsize=11, fontweight='bold', color='#22c55e')
 
 # Save and show
 plt.tight_layout()
-save_path = 'static/training_results.png'
+save_path = 'static/uploads/training_results.png'
 plt.savefig(save_path, dpi=200, bbox_inches='tight', facecolor='#0f172a')
 print(f"✅ Premium results graph saved to: {save_path}\n")
+

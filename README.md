@@ -17,12 +17,12 @@ A complete Flask + TensorFlow web application for **diabetic retinopathy screeni
 
 ## 📊 Training Performance
 
-The model achieves high-performance diagnostic accuracy (>94%) using Mixed Precision and QAT:
+The model achieves high-performance diagnostic accuracy (92.7%) using Mixed Precision and QAT:
 
-![Training Results](static/training_results.png)
+![Training Results](static/uploads/training_results.png)
 
 **Key Metrics:**
-- **Peak Validation Accuracy: >94%**
+- **Peak Validation Accuracy: 92.7%**
 - Lightweight architecture optimized for deployment.
 
 ---
